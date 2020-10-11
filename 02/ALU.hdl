@@ -42,5 +42,67 @@ CHIP ALU {
         ng; // 1 if (out < 0),  0 otherwise
 
     PARTS:
-   // Put you code here:
+    // Made a 16-bit zx
+    Widen(in=zx, out=wideZx);
+    Widen(in=zy, out=wideZy);
+
+    // zx logic
+    // (!zx AND x)
+
+    Not16(in=wideZx, out=notZx);
+    And16(a=x, b=notZx, out=x1);
+
+    Not16(in=wideZy, out=notZy);
+    And16(a=y, b=notZy, out=y1);
+
+    // nx logic
+    // (!x AND nx) OR (x AND !nx)
+    Widen(in=nx, out=wideNx);
+
+    Not16(in=x1, out=notX1);
+    Not16(in=wideNx, out=notWideNx);
+
+    And16(a=notX1, b=wideNx, out=midX1);
+    And16(a=x1, b=notWideNx, out=midX2);
+
+    Or16(a=midX1, b=midX2, out=x2);
+
+
+
+    Widen(in=ny, out=wideNy);
+
+    Not16(in=y1, out=noty1);
+    Not16(in=wideNy, out=notWideNy);
+
+    And16(a=noty1, b=wideNy, out=midY1);
+    And16(a=y1, b=notWideNy, out=midY2);
+
+    Or16(a=midY1, b=midY2, out=y2);
+
+
+    // f
+    // (f AND (x + y)) OR (!f AND (x & y))
+    Widen(in=f, out=wideF);
+
+    Not16(in=wideF, out=notWideF);
+
+    Add16(a=x2, b=y2, out=x2Addy2);
+    And16(a=x2, b=y2, out=x2Andy2);
+
+    And16(a=wideF, b=x2Addy2, out=midF1);
+    And16(a=notWideF, b=x2Andy2, out=midF2);
+
+    Or16(a=midF1, b=midF2, out=subOut);
+
+    // n
+    // (n AND !subOut) OR (!n AND subOut)
+    Widen(in=no, out=wideN);
+
+    Not16(in=subOut, out=notSubOut);
+    Not16(in=wideN, out=notN);
+
+    And16(a=wideN, b=notSubOut, out=midN1);
+    And16(a=notN, b=subOut, out=midN2);
+
+    Or16(a=midN1, b=midN2, out=out);
 }
